@@ -29,7 +29,7 @@
 , buildPackages
 , pkgsBuildTarget
 , libxcrypt
-, disableGdbPlugin ? !enablePlugin
+, disableGdbPlugin ? !enablePlugin || (stdenv.targetPlatform.isAvr && stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64)
 , nukeReferences
 , callPackage
 , majorMinorVersion
@@ -392,7 +392,11 @@ lib.pipe ((callFile ./common/builder.nix {}) ({
       EXTRA_LDFLAGS_FOR_TARGET
       ;
   } // optionalAttrs is7 {
-    NIX_CFLAGS_COMPILE = lib.optionalString (stdenv.cc.isClang && langFortran) "-Wno-unused-command-line-argument";
+    NIX_CFLAGS_COMPILE = lib.optionalString (stdenv.cc.isClang && langFortran) "-Wno-unused-command-line-argument"
+      # Downgrade register storage class specifier errors to warnings when building a cross compiler from a clang stdenv.
+      + lib.optionalString (stdenv.cc.isClang && targetPlatform != hostPlatform) " -Wno-register";
+  } // optionalAttrs (!is7 && !atLeast12 && stdenv.cc.isClang && targetPlatform != hostPlatform) {
+    NIX_CFLAGS_COMPILE = "-Wno-register";
   } // optionalAttrs (!atLeast7) {
     inherit langJava;
   } // optionalAttrs atLeast6 {
@@ -419,9 +423,15 @@ lib.pipe ((callFile ./common/builder.nix {}) ({
       maintainers
     ;
   } // lib.optionalAttrs (!atLeast11) {
-    badPlatforms = if !(is48 || is49) then [ "aarch64-darwin" ] else lib.platforms.darwin;
+    badPlatforms =
+      # avr-gcc8 is maintained for the `qmk` package
+      if (is8 && targetPlatform.isAvr) then []
+      else if !(is48 || is49) then [ "aarch64-darwin" ]
+      else lib.platforms.darwin;
+  } // lib.optionalAttrs is11 {
+    badPlatforms = if targetPlatform != hostPlatform then [ "aarch64-darwin" ] else [ ];
   };
-} // lib.optionalAttrs (!atLeast10 && stdenv.hostPlatform.isDarwin) {
+} // lib.optionalAttrs (!atLeast10 && stdenv.targetPlatform.isDarwin) {
   # GCC <10 requires default cctools `strip` instead of `llvm-strip` used by Darwin bintools.
   preBuild = ''
     makeFlagsArray+=('STRIP=${lib.getBin darwin.cctools-port}/bin/${stdenv.cc.targetPrefix}strip')
