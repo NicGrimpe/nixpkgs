@@ -1,22 +1,25 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, calver
-, pytestCheckHook
-, pythonOlder
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  calver,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
 }:
 
 let
   self = buildPythonPackage rec {
     pname = "trove-classifiers";
-    version = "2023.8.7";
-    format = "setuptools";
+    version = "2024.5.22";
+    pyproject = true;
 
     disabled = pythonOlder "3.7";
 
     src = fetchPypi {
-      inherit pname version;
-      hash = "sha256-yfKgqF1UXlNi6Wfk8Gn1b939kSFeIv+kjGb7KDUhMZo=";
+      pname = "trove_classifiers";
+      inherit version;
+      hash = "sha256-imJCu7XJrojTTPZl6Bayh9IhKXPId336717BjXKsHQM=";
     };
 
     postPatch = ''
@@ -26,13 +29,12 @@ let
 
     nativeBuildInputs = [
       calver
+      setuptools
     ];
 
     doCheck = false; # avoid infinite recursion with hatchling
 
-    nativeCheckInputs = [
-      pytestCheckHook
-    ];
+    nativeCheckInputs = [ pytestCheckHook ];
 
     pythonImportsCheck = [ "trove_classifiers" ];
 
@@ -47,4 +49,4 @@ let
     };
   };
 in
-  self
+self

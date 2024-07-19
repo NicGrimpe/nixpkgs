@@ -47,9 +47,6 @@ let
     toPythonModule = x: x;  # Application does not provide modules.
   }));
 
-  # See build-setupcfg/default.nix for documentation.
-  buildSetupcfg = import ../../../build-support/build-setupcfg lib self;
-
   # Check whether a derivation provides a Python module.
   hasPythonModule = drv: drv?pythonModule && drv.pythonModule == python;
 
@@ -71,7 +68,10 @@ let
       passthru = (oldAttrs.passthru or {})// {
         pythonModule = python;
         pythonPath = [ ]; # Deprecated, for compatibility.
-        requiredPythonModules = requiredPythonModules drv.propagatedBuildInputs;
+        requiredPythonModules =
+          builtins.addErrorContext
+          "while calculating requiredPythonModules for ${drv.name or drv.pname}:"
+          (requiredPythonModules drv.propagatedBuildInputs);
       };
     });
 
@@ -92,19 +92,13 @@ let
   disabledIf = x: drv: if x then disabled drv else drv;
 
 in {
-
   inherit lib pkgs stdenv;
   inherit (python.passthru) isPy27 isPy37 isPy38 isPy39 isPy310 isPy311 isPy3k isPyPy pythonAtLeast pythonOlder;
   inherit buildPythonPackage buildPythonApplication;
   inherit hasPythonModule requiredPythonModules makePythonPath disabled disabledIf;
   inherit toPythonModule toPythonApplication;
-  inherit buildSetupcfg;
 
   python = toPythonModule python;
   # Dont take pythonPackages from "global" pkgs scope to avoid mixing python versions
   pythonPackages = self;
-
-  # Remove?
-  recursivePthLoader = toPythonModule (callPackage ../../../development/python-modules/recursive-pth-loader { });
-
 }

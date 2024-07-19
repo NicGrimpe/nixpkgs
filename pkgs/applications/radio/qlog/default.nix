@@ -16,21 +16,17 @@
 
 stdenv.mkDerivation rec {
   pname = "qlog";
-  version = "0.29.2";
+  version = "0.37.1";
 
   src = fetchFromGitHub {
     owner = "foldynl";
     repo = "QLog";
     rev = "v${version}";
-    hash = "sha256-g7WgFQPMOaD+3YllZqpykslmPYT/jNVK7/1xaPdbti4=";
+    hash = "sha256-ZIgKyPRTzlk6N23SmDEPNM8vXXh0FizXb9/WqtbmSCU=";
     fetchSubmodules = true;
   };
 
   env.NIX_LDFLAGS = "-lhamlib";
-
-  patches = [
-    ./mac.patch
-  ];
 
   buildInputs = [
     qtbase
@@ -52,6 +48,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "Amateur radio logbook software";
+    mainProgram = "qlog";
     license = with licenses; [ gpl3Only ];
     homepage = "https://github.com/foldynl/QLog";
     maintainers = with maintainers; [ oliver-koss mkg20001 ];

@@ -2,15 +2,15 @@
 
 buildGoModule rec {
   pname = "istioctl";
-  version = "1.20.0";
+  version = "1.22.3";
 
   src = fetchFromGitHub {
     owner = "istio";
     repo = "istio";
     rev = version;
-    hash = "sha256-V07e0IbHlQLSVxzWClHX8PrwKY4DaMZmwy3IwGTD7jI=";
+    hash = "sha256-rtvuGIcjarIc4PmBXM3s/XbMQp/wlU1FhHb1lmXE2go=";
   };
-  vendorHash = "sha256-PQYlqi4KDietVV2J5KiaoFqHg12l0bomj57lsTYkSPo=";
+  vendorHash = "sha256-0F4GIOT/YUzLLhD9HzNJpGSgfMALiEPAb4vtmLmI+Qs=";
 
   nativeBuildInputs = [ installShellFiles ];
 
@@ -40,6 +40,7 @@ buildGoModule rec {
 
   meta = with lib; {
     description = "Istio configuration command line utility for service operators to debug and diagnose their Istio mesh";
+    mainProgram = "istioctl";
     homepage = "https://istio.io/latest/docs/reference/commands/istioctl";
     license = licenses.asl20;
     maintainers = with maintainers; [ bryanasdev000 veehaitch ];

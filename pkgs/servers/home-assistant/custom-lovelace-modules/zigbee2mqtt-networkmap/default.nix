@@ -1,25 +1,26 @@
-{ lib
-, fetchFromGitHub
-, fetchYarnDeps
-, mkYarnPackage
+{
+  lib,
+  fetchFromGitHub,
+  fetchYarnDeps,
+  mkYarnPackage,
 }:
 
 mkYarnPackage rec {
   pname = "zigbee2mqtt-networkmap";
-  version = "unstable-2023-12-06";
+  version = "0.9.0";
 
   src = fetchFromGitHub {
     owner = "azuwis";
     repo = "zigbee2mqtt-networkmap";
-    rev = "d5f1002118ba5881c6bdc27cb0f67642575c414f";
-    hash = "sha256-ITqzMjom2XN7+ICDH0Z5YJWY5GNUXzaqSuEzXekhw9I=";
+    rev = "v${version}";
+    hash = "sha256-K4DyrurC4AzzJCcB4CS9UlQbUQSWpR7PevA2JFFMRZM=";
   };
 
   packageJSON = ./package.json;
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${src}/yarn.lock";
-    hash = "sha256-uPhD6UQ1KI7y6bqqQF7InT9eKU9VWGf2D60Lo5Mwcf8=";
+    hash = "sha256-h/5TWaIg8AfY6I/JBRmUF6yCCbxCMs9nRECWEaaK2to=";
   };
 
   configurePhase = ''
@@ -49,8 +50,10 @@ mkYarnPackage rec {
   doDist = false;
 
   passthru.entrypoint = "zigbee2mqtt-networkmap.js";
+  passthru.updateScript = ./update.sh;
 
   meta = with lib; {
+    changelog = "https://github.com/azuwis/zigbee2mqtt-networkmap/releases/tag/v${version}";
     description = "Home Assistant Custom Card to show Zigbee2mqtt network map";
     homepage = "https://github.com/azuwis/zigbee2mqtt-networkmap";
     maintainers = with maintainers; [ azuwis ];

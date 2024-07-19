@@ -1,16 +1,85 @@
 { lib
 , stdenvNoCC
+, stdenv
 , fetchurl
+, autoPatchelfHook
 , undmg
+, zstd
+, curl
+, fontconfig
+, libglvnd
+, libxkbcommon
+, vulkan-loader
+, wayland
+, xdg-utils
+, xorg
+, zlib
+, makeWrapper
+, waylandSupport ? false
 }:
-stdenvNoCC.mkDerivation (finalAttrs: {
-  pname = "warp-terminal";
-  version = "0.2023.11.07.08.02.stable_00";
 
+let
+pname = "warp-terminal";
+versions = lib.importJSON ./versions.json;
+passthru.updateScript = ./update.sh;
+
+linux = stdenv.mkDerivation (finalAttrs:  {
+  inherit pname meta passthru;
+  inherit (versions.linux) version;
   src = fetchurl {
-    url = "https://releases.warp.dev/stable/v${finalAttrs.version}/Warp.dmg";
-    hash = "sha256-oGsoIzNlrknaZtrGWT3oUEzwJIutxB1wnAvxTzF6Fis=";
+    inherit (versions.linux) hash;
+    url = "https://releases.warp.dev/stable/v${finalAttrs.version}/warp-terminal-v${finalAttrs.version}-1-x86_64.pkg.tar.zst";
   };
+
+  sourceRoot = ".";
+
+  postPatch = ''
+    substituteInPlace usr/bin/warp-terminal \
+      --replace-fail /opt/ $out/opt/
+  '';
+
+  nativeBuildInputs = [ autoPatchelfHook zstd makeWrapper ];
+
+  buildInputs = [
+    curl
+    fontconfig
+    stdenv.cc.cc.lib # libstdc++.so libgcc_s.so
+    zlib
+  ];
+
+  runtimeDependencies = [
+    libglvnd # for libegl
+    libxkbcommon
+    stdenv.cc.libc
+    vulkan-loader
+    xdg-utils
+    xorg.libX11
+    xorg.libxcb
+    xorg.libXcursor
+    xorg.libXi
+  ] ++ lib.optionals waylandSupport [wayland];
+
+  installPhase = ''
+    runHook preInstall
+
+    mkdir $out
+    cp -r opt usr/* $out
+
+  '' + lib.optionalString waylandSupport ''
+    wrapProgram $out/bin/warp-terminal --set WARP_ENABLE_WAYLAND 1
+  '' + ''
+    runHook postInstall
+  '';
+});
+
+darwin = stdenvNoCC.mkDerivation (finalAttrs: {
+  inherit pname meta passthru;
+  inherit (versions.darwin) version;
+  src = fetchurl {
+    inherit (versions.darwin) hash;
+    url = "https://releases.warp.dev/stable/v${finalAttrs.version}/Warp.dmg";
+  };
+
   sourceRoot = ".";
 
   nativeBuildInputs = [ undmg ];
@@ -23,13 +92,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+});
 
-  meta = with lib; {
-    description = "Rust-based terminal";
-    homepage = "https://www.warp.dev";
-    license = licenses.unfree;
-    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    maintainers = with maintainers; [ emilytrau Enzime ];
-    platforms = platforms.darwin;
-  };
-})
+meta = with lib; {
+  description = "Rust-based terminal";
+  homepage = "https://www.warp.dev";
+  license = licenses.unfree;
+  sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+  maintainers = with maintainers; [ emilytrau imadnyc donteatoreo johnrtitor ];
+  platforms = platforms.darwin ++ [ "x86_64-linux" ];
+};
+
+in
+if stdenvNoCC.isDarwin
+then darwin
+else linux

@@ -6,19 +6,20 @@ let
   # NOTE: When updating these, please also take a look at the changes done to
   # kernel config in the xanmod version commit
   ltsVariant = {
-    version = "6.1.63";
-    hash = "sha256-WBMKJCLYexWJuTpli8vjvdms2ZYPXIS0yUxTgAL00io=";
+    version = "6.6.40";
+    hash = "sha256-UkeBSHtkyNvpLSiJiB8HTNmVJcKDVEftvFcQA497FLU=";
     variant = "lts";
   };
 
   mainVariant = {
-    version = "6.5.12";
-    hash = "sha256-zG9+d+hKg0S0qCX2hOc02CowC6s9u82MB45+X1bGYpE=";
+    version = "6.9.9";
+    hash = "sha256-ZEU1RIgJ0ckyITFWZndEzXYwnTF39OviLxL9S5dEea4=";
     variant = "main";
   };
 
   xanmodKernelFor = { version, suffix ? "xanmod1", hash, variant }: buildLinux (args // rec {
     inherit version;
+    pname = "linux-xanmod";
     modDirVersion = lib.versions.pad 3 "${version}-${suffix}";
 
     src = fetchFromGitHub {
@@ -29,17 +30,30 @@ let
     };
 
     structuredExtraConfig = with lib.kernel; {
+      # CPUFreq governor Performance
+      CPU_FREQ_DEFAULT_GOV_PERFORMANCE = lib.mkOverride 60 yes;
+      CPU_FREQ_DEFAULT_GOV_SCHEDUTIL = lib.mkOverride 60 no;
+
+      # Full preemption
+      PREEMPT = lib.mkOverride 60 yes;
+      PREEMPT_VOLUNTARY = lib.mkOverride 60 no;
+
       # Google's BBRv3 TCP congestion Control
       TCP_CONG_BBR = yes;
       DEFAULT_BBR = yes;
-
-      # WineSync driver for fast kernel-backed Wine
-      WINESYNC = module;
 
       # Preemptive Full Tickless Kernel at 250Hz
       HZ = freeform "250";
       HZ_250 = yes;
       HZ_1000 = no;
+
+      # RCU_BOOST and RCU_EXP_KTHREAD
+      RCU_EXPERT = yes;
+      RCU_FANOUT = freeform "64";
+      RCU_FANOUT_LEAF = freeform "16";
+      RCU_BOOST = yes;
+      RCU_BOOST_DELAY = freeform "0";
+      RCU_EXP_KTHREAD = yes;
     };
 
     extraMeta = {

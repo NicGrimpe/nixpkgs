@@ -9,20 +9,20 @@
 }:
 
 let
-  version = "unstable-2023-10-30";
+  version = "1.0.0-unstable-2024-02-03";
 
   src = fetchFromGitHub {
     owner = "zbelial";
     repo = "lspce";
-    rev = "34c59787bcdbf414c92d9b3bf0a0f5306cb98d64";
-    hash = "sha256-kUHGdeJo2zXA410FqXGclgXmgWrll30Zv8fSprcmnIo=";
+    rev = "543dcf0ea9e3ff5c142c4365d90b6ae8dc27bd15";
+    hash = "sha256-LZWRQOKkTjNo8jecBRholW9SHpiK0SWcV8yObojpvxo=";
   };
 
   meta = {
     homepage = "https://github.com/zbelial/lspce";
     description = "LSP Client for Emacs implemented as a module using rust";
     license = lib.licenses.gpl3Only;
-    maintainers = [ lib.maintainers.marsam ];
+    maintainers = [ ];
     inherit (emacs.meta) platforms;
   };
 
@@ -30,17 +30,19 @@ let
     inherit version src meta;
     pname = "lspce-module";
 
-    cargoHash = "sha256-eqSromwJrFhtJWedDVJivfbKpAtSFEtuCP098qOxFgI=";
+    cargoHash = "sha256-W9rsi7o4KvyRoG/pqRKOBbJtUoSW549Sh8+OV9sLcxs=";
 
     checkFlags = [
       # flaky test
       "--skip=msg::tests::serialize_request_with_null_params"
     ];
 
-    postFixup = ''
+    postInstall = ''
+      mkdir -p $out/share/emacs/site-lisp
       for f in $out/lib/*; do
-        mv $f $out/lib/lspce-module.''${f##*.}
+        mv $f $out/share/emacs/site-lisp/lspce-module.''${f##*.}
       done
+      rmdir $out/lib
     '';
   };
 in
@@ -48,25 +50,16 @@ trivialBuild rec {
   inherit version src meta;
   pname = "lspce";
 
-  preBuild = ''
-    ln -s ${lspce-module}/lib/lspce-module* .
-
-    # Fix byte-compilation
-    substituteInPlace lspce-util.el \
-      --replace "(require 'yasnippet)" "(require 'yasnippet)(require 'url-util)"
-    substituteInPlace lspce-calltree.el \
-      --replace "(require 'compile)" "(require 'compile)(require 'cl-lib)"
-  '';
-
   buildInputs = propagatedUserEnvPkgs;
 
   propagatedUserEnvPkgs = [
     f
     markdown-mode
     yasnippet
+    lspce-module
   ];
 
-  postInstall = ''
-    install lspce-module* $LISPDIR
-  '';
+  passthru = {
+    inherit lspce-module;
+  };
 }

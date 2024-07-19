@@ -7,15 +7,20 @@
 , pkg-config
 , vala
 , wrapGAppsHook4
-, evolution-data-server
+, evolution-data-server-gtk4
 , glib
 , glib-networking
+, gst_all_1
 , gtk4
+, gtksourceview5
+, gxml
 , json-glib
 , libadwaita
 , libgee
 , libical
 , libportal-gtk4
+, libsecret
+, libsoup_3
 , pantheon
 , sqlite
 , webkitgtk_6_0
@@ -23,16 +28,13 @@
 
 stdenv.mkDerivation rec {
   pname = "planify";
-  version = "4.1.4";
+  version = "4.8.4";
 
   src = fetchFromGitHub {
     owner = "alainm23";
     repo = "planify";
-    # The commit is named as "Release 4.1.4", published to Flathub, but not tags
-    # https://github.com/flathub/io.github.alainm23.planify/commit/f345f81b55e4638bc6605e0bf9d15a057b846252
-    # https://github.com/alainm23/planify/issues/1002
-    rev = "73fd6cb7acfc60937d1403238c255736b97aa94b";
-    hash = "sha256-K3QFFpq2MJxK34Uh0qFyaSGeTPTZbwIVYkosFUrhflQ=";
+    rev = version;
+    hash = "sha256-iQo7ETz5j/Uy5a96XFRkZ0U67dTHWEYLsr/qUi79Y4E=";
   };
 
   nativeBuildInputs = [
@@ -45,18 +47,29 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    evolution-data-server
+    evolution-data-server-gtk4
     glib
     glib-networking
+    # Needed for GtkMediaStream creation with success.ogg, see #311295.
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
     gtk4
+    gtksourceview5
+    gxml
     json-glib
     libadwaita
     libgee
     libical
     libportal-gtk4
+    libsecret
+    libsoup_3
     pantheon.granite7
     sqlite
     webkitgtk_6_0
+  ];
+
+  mesonFlags = [
+    "-Dprofile=default"
   ];
 
   meta = with lib; {

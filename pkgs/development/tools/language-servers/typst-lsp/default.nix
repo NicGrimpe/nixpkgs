@@ -9,21 +9,20 @@ rustPlatform.buildRustPackage rec {
   pname = "typst-lsp";
   # Please update the corresponding vscode extension when updating
   # this derivation.
-  version = "0.11.0";
+  version = "0.13.0";
 
   src = fetchFromGitHub {
     owner = "nvarner";
     repo = "typst-lsp";
     rev = "v${version}";
-    hash = "sha256-L0d+fDCLxU/XHC99VlIcZdiO3RohtWfoRnUPGIHodcc=";
+    hash = "sha256-OubKtSHw9L4GzVzZY0AVdHY7LzKg/XQIhUfUc2OYAG0=";
   };
 
   cargoLock = {
     lockFile = ./Cargo.lock;
     outputHashes = {
-      "typst-0.9.0" = "sha256-LwRB/AQE8TZZyHEQ7kKB10itzEgYjg4R/k+YFqmutDc=";
       "typst-syntax-0.7.0" = "sha256-yrtOmlFAKOqAmhCP7n0HQCOQpU3DWyms5foCdUb9QTg=";
-      "typstfmt_lib-0.2.6" = "sha256-UUVbnxIj7kQVpZvSbbB11i6wAvdTnXVk5cNSNoGBeRM=";
+      "typstfmt_lib-0.2.7" = "sha256-LBYsTCjZ+U+lgd7Z3H1sBcWwseoHsuepPd66bWgfvhI=";
     };
   };
 
@@ -46,7 +45,7 @@ rustPlatform.buildRustPackage rec {
   '';
 
   meta = with lib; {
-    description = "A brand-new language server for Typst";
+    description = "Brand-new language server for Typst";
     homepage = "https://github.com/nvarner/typst-lsp";
     mainProgram = "typst-lsp";
     changelog = "https://github.com/nvarner/typst-lsp/releases/tag/${src.rev}";

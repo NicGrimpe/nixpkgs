@@ -23,6 +23,11 @@ formats commits for you.
 
 */
 
+let
+  # Read ./recipes-archive-melpa.json in an outer let to make sure we only do this once.
+  defaultArchive = builtins.fromJSON (builtins.readFile ./recipes-archive-melpa.json);
+in
+
 { lib, pkgs }: variant: self:
 let
   dontConfigure = pkg:
@@ -57,7 +62,7 @@ let
     if pkg != null then dontConfigure (externalSrc pkg pkgs.rtags)
     else null;
 
-  generateMelpa = lib.makeOverridable ({ archiveJson ? ./recipes-archive-melpa.json
+  generateMelpa = lib.makeOverridable ({ archiveJson ? defaultArchive
                                        }:
     let
       inherit (import ./libgenerated.nix lib self) melpaDerivation;
@@ -66,7 +71,7 @@ let
           (s: s != null)
           (map
             (melpaDerivation variant)
-            (lib.importJSON archiveJson)
+            (if builtins.isList archiveJson then archiveJson else lib.importJSON archiveJson)
           )
         )
       );
@@ -477,6 +482,13 @@ let
 
         ox-rss = buildWithGit super.ox-rss;
 
+        python-isort = super.python-isort.overrideAttrs (attrs: {
+          postPatch = attrs.postPatch or "" + ''
+            substituteInPlace python-isort.el \
+              --replace '-isort-command "isort"' '-isort-command "${lib.getExe pkgs.isort}"'
+          '';
+        });
+
         # upstream issue: missing file header
         mhc = super.mhc.override {
           inherit (self.melpaPackages) calfw;
@@ -501,14 +513,29 @@ let
 
         rime = super.rime.overrideAttrs (old: {
           buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.librime ];
-          preBuild = (old.preBuild or "") + ''
+          preBuild = (old.preBuild or "") +
+          (if pkgs.stdenv.isDarwin then
+            ''
+              export MODULE_FILE_SUFFIX=".dylib"
+              make lib
+              mkdir -p /tmp/build/rime-lib
+              cp *.dylib /tmp/build/rime-lib
+            ''
+          else
+          ''
             make lib
             mkdir -p /build/rime-lib
             cp *.so /build/rime-lib
-          '';
-          postInstall = (old.postInstall or "") + ''
+          '');
+          postInstall = (old.postInstall or "") +
+          (if pkgs.stdenv.isDarwin then
+          ''
+            install -m444 -t $out/share/emacs/site-lisp/elpa/rime-* /tmp/build/rime-lib/*.dylib
+          ''
+          else
+          ''
             install -m444 -t $out/share/emacs/site-lisp/elpa/rime-* /build/rime-lib/*.so
-          '';
+          '');
         });
 
         shm = super.shm.overrideAttrs (attrs: {

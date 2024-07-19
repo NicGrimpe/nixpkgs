@@ -35,11 +35,12 @@ rustPlatform.buildRustPackage rec {
   dontPatchELF = true;
 
   meta = {
-    description = "A tiling window manager for the adventurer";
+    description = "Tiling window manager for the adventurer";
     homepage = "https://github.com/leftwm/leftwm";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ yanganto ];
     changelog = "https://github.com/leftwm/leftwm/blob/${version}/CHANGELOG.md";
+    mainProgram = "leftwm";
   };
 }

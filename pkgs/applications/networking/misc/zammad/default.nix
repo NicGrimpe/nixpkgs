@@ -17,14 +17,13 @@
 , nodejs
 , yarn
 , yarn2nix-moretea
-, v8
 , cacert
 , redis
 }:
 
 let
   pname = "zammad";
-  version = "6.1.0";
+  version = "6.2.0";
 
   src = applyPatches {
 
@@ -83,7 +82,7 @@ let
       };
       mini_racer = attrs: {
         buildFlags = [
-          "--with-v8-dir=\"${v8}\""
+          "--with-v8-dir=\"${nodejs.libv8}\""
         ];
         dontBuild = false;
         postPatch = ''
@@ -101,7 +100,7 @@ let
 
     offlineCache = fetchYarnDeps {
       yarnLock = "${src}/yarn.lock";
-      hash = "sha256-PVQ2L+Io6Ct9UHvfoQmxV01ECG8fj0+xKwpMfAvD7q0=";
+      hash = "sha256-u72ZTpcUvFa1gaWi4lzTQa+JsI85jU4n8r1JhqFnCj4=";
     };
 
     yarnPreBuild = ''
@@ -161,7 +160,7 @@ stdenv.mkDerivation {
   };
 
   meta = with lib; {
-    description = "Zammad, a web-based, open source user support/ticketing solution.";
+    description = "Zammad, a web-based, open source user support/ticketing solution";
     homepage = "https://zammad.org";
     license = licenses.agpl3Plus;
     platforms = [ "x86_64-linux" "aarch64-linux" ];

@@ -15,16 +15,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "espup";
-  version = "0.10.0";
+  version = "0.12.1";
 
   src = fetchFromGitHub {
     owner = "esp-rs";
     repo = "espup";
     rev = "v${version}";
-    hash = "sha256-MLr6Fh1KAvGry/fToJuLYOf36MKW2i5W4XiMIEeb52M=";
+    hash = "sha256-cbBfzx195zk98IbSNSx99CF1RqH+ySpy6SQk5y8rvq4=";
   };
 
-  cargoHash = "sha256-AIM08tvt1w+TJgjxCxU+zN9eDBvgCv15WM+vQGbTF18=";
+  cargoHash = "sha256-N1TpBN5wULY+brBxUfwFrBTLKrVI8Cq3OX8fJqLHwAI=";
 
   nativeBuildInputs = [
     pkg-config
@@ -68,7 +68,7 @@ rustPlatform.buildRustPackage rec {
   };
 
   meta = with lib; {
-    description = "Tool for installing and maintaining Espressif Rust ecosystem.";
+    description = "Tool for installing and maintaining Espressif Rust ecosystem";
     homepage = "https://github.com/esp-rs/espup/";
     license = with licenses; [ mit asl20 ];
     maintainers = with maintainers; [ knightpp beeb ];

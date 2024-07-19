@@ -1,12 +1,23 @@
 { lib
 , fetchFromGitHub
 , makeWrapper
-, jre
+, jdk_headless
+, jre_minimal
 , maven
 , writeScript
 , lemminx
 }:
 
+let
+  jre = jre_minimal.override {
+    modules = [
+      "java.base"
+      "java.logging"
+      "java.xml"
+    ];
+    jdk = jdk_headless;
+  };
+in
 maven.buildMavenPackage rec {
   pname = "lemminx";
   version = "0.27.0";
@@ -98,6 +109,7 @@ maven.buildMavenPackage rec {
 
   meta = with lib; {
     description = "XML Language Server";
+    mainProgram = "lemminx";
     homepage = "https://github.com/eclipse/lemminx";
     license = licenses.epl20;
     maintainers = with maintainers; [ tricktron ];

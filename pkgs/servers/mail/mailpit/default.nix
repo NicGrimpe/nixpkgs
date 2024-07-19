@@ -12,13 +12,13 @@
 }:
 
 let
-  version = "1.10.4";
+  version = "1.15.1";
 
   src = fetchFromGitHub {
     owner = "axllent";
     repo = "mailpit";
     rev = "v${version}";
-    hash = "sha256-DEeE562E+G/Qfpqc1kr9bklG6109OZENpglWmHj0Tpo=";
+    hash = "sha256-5QEn4sEZgtoFrVonZsAtvzhEkxYGDEWwhJOxqwWQJTk=";
   };
 
   # Separate derivation, because if we mix this in buildGoModule, the separate
@@ -30,7 +30,7 @@ let
 
     npmDeps = fetchNpmDeps {
       inherit src;
-      hash = "sha256-FEwaWHf5Ic2t933xSacmc+T0RydZOPCK1yQxTRZ0u38=";
+      hash = "sha256-5F68ia2V8mw4iPAjSoz0b8z1lplWtAg98BgDXYOmMKs=";
     };
 
     env = lib.optionalAttrs (stdenv.isDarwin && stdenv.isx86_64) {
@@ -56,7 +56,7 @@ buildGoModule {
   pname = "mailpit";
   inherit src version;
 
-  vendorHash = "sha256-oBkdC4Qx9vuz9rvNxk27TM6vkQokOcFQ4hEZCxlT8xo=";
+  vendorHash = "sha256-e2mlOwGDU5NlKZSstHMdTidSfhNeeY6cBgtW+W9nwV8=";
 
   CGO_ENABLED = 0;
 
@@ -67,13 +67,12 @@ buildGoModule {
   '';
 
   passthru.tests.version = testers.testVersion {
-    inherit version;
     package = mailpit;
     command = "mailpit version";
   };
 
   meta = with lib; {
-    description = "An email and SMTP testing tool with API for developers";
+    description = "Email and SMTP testing tool with API for developers";
     homepage = "https://github.com/axllent/mailpit";
     changelog = "https://github.com/axllent/mailpit/releases/tag/v${version}";
     maintainers = with maintainers; [ stephank ];

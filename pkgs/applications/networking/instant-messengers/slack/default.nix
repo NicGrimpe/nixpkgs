@@ -45,14 +45,14 @@ let
 
   pname = "slack";
 
-  x86_64-darwin-version = "4.35.126";
-  x86_64-darwin-sha256 = "1fmcvj4ryf9k82hbrkb4fl7iki6v80msgrwsc7l996wzkg5j771n";
+  x86_64-darwin-version = "4.38.121";
+  x86_64-darwin-sha256 = "1w0s6j8z8961sv4y00jxpy5gjlj0dswyxs15c7isb26ii11nn1i2";
 
-  x86_64-linux-version = "4.35.126";
-  x86_64-linux-sha256 = "0axwmhr8r8q3ih91zxwj3z64fnjy7w4mzmlyxcp2iws5gd541lcm";
+  x86_64-linux-version = "4.38.125";
+  x86_64-linux-sha256 = "sha256-BJeFXZ8STbMCmGvYRoFsfsyIpGukQkuwv0m2NzE+89c=";
 
-  aarch64-darwin-version = "4.35.126";
-  aarch64-darwin-sha256 = "0g477a31sdyxmg66aklpw359k1kk7vrd96vgcy5lxsvwvihiinkz";
+  aarch64-darwin-version = "4.38.121";
+  aarch64-darwin-sha256 = "161z947p7a2d7584hybl77chab8y027cqpph2hd2s4b5k6bchkj5";
 
   version = {
     x86_64-darwin = x86_64-darwin-version;
@@ -84,7 +84,7 @@ let
     changelog = "https://slack.com/release-notes";
     sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     license = licenses.unfree;
-    maintainers = with maintainers; [ mmahut amaxine ];
+    maintainers = with maintainers; [ mmahut teutat3s ];
     platforms = [ "x86_64-darwin" "x86_64-linux" "aarch64-darwin" ];
     mainProgram = "slack";
   };
@@ -181,7 +181,11 @@ let
         --replace /usr/bin/ $out/bin/ \
         --replace /usr/share/pixmaps/slack.png slack \
         --replace bin/slack "bin/slack -s"
-
+    '' + lib.optionalString stdenv.hostPlatform.isLinux ''
+      # Prevent Un-blacklist pipewire integration to enable screen sharing on wayland.
+      # https://github.com/flathub/com.slack.Slack/issues/101#issuecomment-1807073763
+      sed -i -e 's/,"WebRTCPipeWireCapturer"/,"LebRTCPipeWireCapturer"/' $out/lib/slack/resources/app.asar
+    '' + ''
       runHook postInstall
     '';
   };
