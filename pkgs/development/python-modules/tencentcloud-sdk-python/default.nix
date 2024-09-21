@@ -10,7 +10,7 @@
 
 buildPythonPackage rec {
   pname = "tencentcloud-sdk-python";
-  version = "3.0.1190";
+  version = "3.0.1234";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
@@ -19,7 +19,7 @@ buildPythonPackage rec {
     owner = "TencentCloud";
     repo = "tencentcloud-sdk-python";
     rev = "refs/tags/${version}";
-    hash = "sha256-bf9WZauTily9V4fKNxQifxUzdbj51rH7LvAogiZmX6U=";
+    hash = "sha256-tQKF/MF2WdLp4vOJS3psiBklwzM9R3jo7SSLhZWOjBU=";
   };
 
   build-system = [ setuptools ];
@@ -30,12 +30,7 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [ "tencentcloud" ];
 
-  pytestFlagsArray = [
-    # Other tests require credentials
-    "tests/unit/test_deserialize_warning.py"
-    "tests/unit/test_import.py"
-    "tests/unit/test_serialization.py"
-  ];
+  pytestFlagsArray = [ "tests/unit/" ];
 
   meta = with lib; {
     description = "Tencent Cloud API 3.0 SDK for Python";

@@ -1,23 +1,22 @@
-{ lib, stdenv, fetchFromGitHub, buildLinux, ... } @ args:
+{ lib, stdenv, fetchFromGitHub, buildLinux, variant, ... } @ args:
 
 let
   # These names are how they are designated in https://xanmod.org.
 
   # NOTE: When updating these, please also take a look at the changes done to
   # kernel config in the xanmod version commit
-  ltsVariant = {
-    version = "6.6.40";
-    hash = "sha256-UkeBSHtkyNvpLSiJiB8HTNmVJcKDVEftvFcQA497FLU=";
-    variant = "lts";
+  variants = {
+    lts = {
+      version = "6.6.51";
+      hash = "sha256-dNUTePfL6cAA0EmEG/D36dNJUobDRBHR5+BYrLIYot4=";
+    };
+    main = {
+      version = "6.10.10";
+      hash = "sha256-abxhlF0zmY9WvcQ+FnkR5fNMvrw+oTCIMaCs8DFJ+oA=";
+    };
   };
 
-  mainVariant = {
-    version = "6.9.9";
-    hash = "sha256-ZEU1RIgJ0ckyITFWZndEzXYwnTF39OviLxL9S5dEea4=";
-    variant = "main";
-  };
-
-  xanmodKernelFor = { version, suffix ? "xanmod1", hash, variant }: buildLinux (args // rec {
+  xanmodKernelFor = { version, suffix ? "xanmod1", hash }: buildLinux (args // rec {
     inherit version;
     pname = "linux-xanmod";
     modDirVersion = lib.versions.pad 3 "${version}-${suffix}";
@@ -64,7 +63,4 @@ let
     };
   } // (args.argsOverride or { }));
 in
-{
-  lts = xanmodKernelFor ltsVariant;
-  main = xanmodKernelFor mainVariant;
-}
+xanmodKernelFor variants.${variant}

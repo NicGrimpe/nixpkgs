@@ -50,6 +50,10 @@ Similarly, if you encounter errors similar to `Error_Protocol ("certificate has 
   If specified, the layer created by `buildImage` will be appended to the layers defined in the base image, resulting in an image with at least two layers (one or more layers from the base image, and the layer created by `buildImage`).
   Otherwise, the resulting image with contain the single layer created by `buildImage`.
 
+  :::{.note}
+  Only **Env** configuration is inherited from the base image.
+  :::
+
   _Default value:_ `null`.
 
 `fromImageName` (String or Null; _optional_)
@@ -184,6 +188,19 @@ Similarly, if you encounter errors similar to `Error_Protocol ("certificate has 
 
   _Default value:_ `"gz"`.\
   _Possible values:_ `"none"`, `"gz"`, `"zstd"`.
+
+`includeNixDB` (Boolean; _optional_)
+
+: Populate the nix database in the image with the dependencies of `copyToRoot`.
+  The main purpose is to be able to use nix commands in the container.
+
+  :::{.caution}
+  Be careful since this doesn't work well in combination with `fromImage`. In particular, in a multi-layered image, only the Nix paths from the lower image will be in the database.
+
+  This also neglects to register the store paths that are pulled into the image as a dependency of one of the other values, but aren't a dependency of `copyToRoot`.
+  :::
+
+  _Default value:_ `false`.
 
 `contents` **DEPRECATED**
 
@@ -573,6 +590,19 @@ This allows the function to produce reproducible images.
   See [](#ex-dockerTools-streamLayeredImage-exploringlayers) to understand the impact of setting `includeStorePaths` to `false`.
 
   _Default value:_ `true`
+
+`includeNixDB` (Boolean; _optional_)
+
+: Populate the nix database in the image with the dependencies of `copyToRoot`.
+  The main purpose is to be able to use nix commands in the container.
+
+  :::{.caution}
+  Be careful since this doesn't work well in combination with `fromImage`. In particular, in a multi-layered image, only the Nix paths from the lower image will be in the database.
+
+  This also neglects to register the store paths that are pulled into the image as a dependency of one of the other values, but aren't a dependency of `copyToRoot`.
+  :::
+
+  _Default value:_ `false`.
 
 `passthru` (Attribute Set; _optional_)
 

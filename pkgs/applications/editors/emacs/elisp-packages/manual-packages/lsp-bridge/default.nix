@@ -6,11 +6,10 @@
   substituteAll,
   acm,
   markdown-mode,
+  basedpyright,
   git,
   go,
   gopls,
-  pyright,
-  ruff,
   tempel,
   unstableGitUpdater,
 }:
@@ -30,13 +29,13 @@ let
 in
 melpaBuild {
   pname = "lsp-bridge";
-  version = "0-unstable-2024-06-29";
+  version = "0-unstable-2024-09-11";
 
   src = fetchFromGitHub {
     owner = "manateelazycat";
     repo = "lsp-bridge";
-    rev = "9e88e660d717ba597d9fe9366cf4278674734410";
-    hash = "sha256-qpetTKZDQjoofp8ggothYALQBpwLjuNxCq46Pe4oZZA=";
+    rev = "fb64891c2585f9fc0b7f2062cc2b98321aa4e4ca";
+    hash = "sha256-ChpZhFEKvN+1oYHbQKBUMbTjk/U++kCDnImMVtcYVBc=";
   };
 
   patches = [
@@ -54,13 +53,15 @@ melpaBuild {
   ];
 
   checkInputs = [
+    # Emacs packages
+    tempel
+
+    # Executables
+    basedpyright
     git
     go
     gopls
-    pyright
     python
-    ruff
-    tempel
   ];
 
   files = ''
@@ -76,7 +77,6 @@ melpaBuild {
   checkPhase = ''
     runHook preCheck
 
-    cd "$sourceRoot"
     mkfifo test.log
     cat < test.log &
     HOME=$(mktemp -d) python -m test.test
@@ -85,6 +85,8 @@ melpaBuild {
   '';
 
   __darwinAllowLocalNetworking = true;
+
+  ignoreCompilationError = false;
 
   passthru.updateScript = unstableGitUpdater { hardcodeZeroVersion = true; };
 

@@ -5,6 +5,7 @@
   fetchFromGitHub,
   cryptography,
   ifaddr,
+  freezegun,
   pytest-asyncio,
   pytestCheckHook,
   pythonOlder,
@@ -13,7 +14,7 @@
 
 buildPythonPackage rec {
   pname = "xknx";
-  version = "2.12.2";
+  version = "3.1.1";
   pyproject = true;
 
   disabled = pythonOlder "3.8";
@@ -22,19 +23,18 @@ buildPythonPackage rec {
     owner = "XKNX";
     repo = "xknx";
     rev = "refs/tags/${version}";
-    hash = "sha256-gajxXIR3lmHsW7258v4z20RilzGfm5KGVrXZwRm74Mk=";
+    hash = "sha256-mlY9jPB3Sme9iajh5kWGf+8MHI0vMUilHe8W7AwmuCo=";
   };
 
-  patches = [ ./pytest-asyncio-0.22-compat.patch ];
+  build-system = [ setuptools ];
 
-  nativeBuildInputs = [ setuptools ];
-
-  propagatedBuildInputs = [
+  dependencies = [
     cryptography
     ifaddr
   ] ++ lib.optionals (pythonOlder "3.11") [ async-timeout ];
 
   nativeCheckInputs = [
+    freezegun
     pytest-asyncio
     pytestCheckHook
   ];

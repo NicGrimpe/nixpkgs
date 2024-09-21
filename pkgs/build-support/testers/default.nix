@@ -1,4 +1,18 @@
-{ pkgs, pkgsLinux, buildPackages, lib, callPackage, runCommand, stdenv, substituteAll, testers }:
+{
+  lib,
+  buildPackages,
+  callPackage,
+  pkgs,
+  pkgsLinux,
+
+  diffoscopeMinimal,
+  runCommand,
+  runCommandWith,
+  stdenv,
+  stdenvNoCC,
+  substituteAll,
+  testers,
+}:
 # Documentation is in doc/build-helpers/testers.chapter.md
 {
   # See https://nixos.org/manual/nixpkgs/unstable/#tester-lycheeLinkCheck
@@ -27,33 +41,22 @@
     expected,
   }: runCommand "equal-contents-${lib.strings.toLower assertion}" {
     inherit assertion actual expected;
+    nativeBuildInputs = [ diffoscopeMinimal ];
   } ''
     echo "Checking:"
-    echo "$assertion"
-    if ! diff -U5 -r "$actual" "$expected" --color=always
+    printf '%s\n' "$assertion"
+    if ! diffoscope --no-progress --text-color=always --exclude-directory-metadata=no -- "$actual" "$expected"
     then
       echo
       echo 'Contents must be equal, but were not!'
       echo
       echo "+: expected,   at $expected"
       echo "-: unexpected, at $actual"
-      exit 1
+      false
     else
-      find "$expected" -type f -executable > expected-executables | sort
-      find "$actual" -type f -executable > actual-executables | sort
-      if ! diff -U0 actual-executables expected-executables --color=always
-      then
-        echo
-        echo "Contents must be equal, but some files' executable bits don't match"
-        echo
-        echo "+: make this file executable in the actual contents"
-        echo "-: make this file non-executable in the actual contents"
-        exit 1
-      else
-        echo "expected $expected and actual $actual match."
-        echo 'OK'
-        touch $out
-      fi
+      echo "expected $expected and actual $actual match."
+      echo OK
+      touch -- "$out"
     fi
   '';
 
@@ -64,7 +67,7 @@
       command ? "${package.meta.mainProgram or package.pname or package.name} --version",
       version ? package.version,
     }: runCommand "${package.name}-test-version" { nativeBuildInputs = [ package ]; meta.timeout = 60; } ''
-      if output=$(${command} 2>&1); then
+      if output=$(${command} 2>&1 | sed -e 's|${builtins.storeDir}/[^/ ]*/|{{storeDir}}/|g'); then
         if grep -Fw -- "${version}" - <<< "$output"; then
           touch $out
         else
@@ -97,6 +100,31 @@
         then throw "invalidateFetcherByDrvHash: Adding the derivation hash to the fixed-output derivation name had no effect. Make sure the fetcher's name argument ends up in the derivation name. Otherwise, the fetcher will not be re-run when its implementation changes. This is important for testing."
         else salted;
     in checked;
+
+  # See https://nixos.org/manual/nixpkgs/unstable/#tester-runCommand
+  runCommand = testers.invalidateFetcherByDrvHash (
+    {
+      hash ? pkgs.emptyFile.outputHash,
+      name,
+      script,
+      stdenv ? stdenvNoCC,
+      ...
+    }@args:
+
+    runCommandWith {
+      inherit name stdenv;
+
+      derivationArgs = {
+        outputHash = hash;
+        outputHashMode = "recursive";
+      } // lib.removeAttrs args [
+        "hash"
+        "name"
+        "script"
+        "stdenv"
+      ];
+    } script
+  );
 
   # See https://nixos.org/manual/nixpkgs/unstable/#tester-runNixOSTest
   # or doc/build-helpers/testers.chapter.md
@@ -151,4 +179,6 @@
   hasPkgConfigModules = callPackage ./hasPkgConfigModules/tester.nix { };
 
   testMetaPkgConfig = callPackage ./testMetaPkgConfig/tester.nix { };
+
+  shellcheck = callPackage ./shellcheck/tester.nix { };
 }
